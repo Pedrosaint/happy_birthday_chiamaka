@@ -1,0 +1,224 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Alex+Brush&family=Montserrat:wght@200;300;400;500&display=swap');
+
+:root {
+  --background: #E8DDCC;
+  --surface: #F3EBDD;
+  --ivory: #FAF7F0;
+  --text: #2A241F;
+  --muted-text: #756B60;
+  --accent: #B89B72;
+  --dark: #211C18;
+  
+  --font-serif: 'Playfair Display', serif;
+  --font-script: 'Alex Brush', cursive;
+  --font-sans: 'Montserrat', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--text);
+  background-color: var(--background);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.script-font {
+  font-family: var(--font-script);
+}
+
+.serif-font {
+  font-family: var(--font-serif);
+}
+
+.sans-font {
+  font-family: var(--font-sans);
+}
+
+/* Backgrounds */
+.bg-dark { background-color: var(--dark); color: var(--ivory); }
+.bg-beige { background-color: var(--background); color: var(--text); }
+.bg-ivory { background-color: var(--ivory); color: var(--text); }
+.bg-surface { background-color: var(--surface); color: var(--text); }
+
+/* Curtain Animation Layout */
+.curtain-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 100;
+  pointer-events: none;
+  display: flex;
+}
+
+.curtain-panel {
+  width: 50%;
+  height: 100%;
+  background-color: var(--ivory);
+  pointer-events: auto;
+  position: relative;
+  box-shadow: 0 0 30px rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  border-right: 1px solid rgba(184, 155, 114, 0.3);
+}
+
+.curtain-panel.right {
+  border-right: none;
+  border-left: 1px solid rgba(184, 155, 114, 0.3);
+}
+
+.curtain-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100vw;
+  text-align: center;
+  pointer-events: auto;
+  z-index: 101;
+}
+
+.open-button {
+  background-color: transparent;
+  border: 1px solid var(--accent);
+  color: var(--text);
+  padding: 1rem 3rem;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  margin-top: 2rem;
+  border-radius: 50px;
+}
+
+.open-button:hover {
+  background-color: var(--accent);
+  color: var(--ivory);
+  box-shadow: 0 10px 20px rgba(184, 155, 114, 0.2);
+}
+
+/* Main Content */
+.main-content {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Floating Elements */
+.floating-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.floating-item {
+  position: absolute;
+  color: var(--accent);
+  opacity: 0.4;
+}
+
+/* Decorative Sections */
+.romantic-section {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  z-index: 10;
+}
+
+.image-frame {
+  padding: 1rem;
+  background-color: #fff;
+  box-shadow: 0 20px 40px rgba(42, 36, 31, 0.1);
+  border-radius: 4px;
+  position: relative;
+}
+
+.image-frame::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(184, 155, 114, 0.3);
+  pointer-events: none;
+  border-radius: 2px;
+}
+
+.flower-corner {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  z-index: 20;
+}
+
+.flower-tl { top: -30px; left: -30px; transform: rotate(-45deg); }
+.flower-br { bottom: -30px; right: -30px; transform: rotate(135deg); }
+
+.grid-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  width: 100%;
+  max-width: 1200px;
+  margin: 4rem auto;
+}
+
+.title-massive {
+  font-size: clamp(4rem, 8vw, 7rem);
+  line-height: 1;
+  text-align: center;
+}
+
+.script-massive {
+  font-size: clamp(3rem, 10vw, 8rem);
+  color: var(--accent);
+  text-align: center;
+  line-height: 0.8;
+  margin-top: -1rem;
+  transform: rotate(-2deg);
+}
+
+.date-badge {
+  display: inline-block;
+  padding: 0.5rem 2rem;
+  border-top: 1px solid var(--accent);
+  border-bottom: 1px solid var(--accent);
+  font-family: var(--font-sans);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  margin: 2rem 0;
+  color: var(--muted-text);
+}
+
+/* Beautiful custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background); 
+}
+::-webkit-scrollbar-thumb {
+  background: var(--accent); 
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a68a61; 
+}
