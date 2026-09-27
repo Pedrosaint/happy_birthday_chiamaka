@@ -15,6 +15,7 @@ import img8 from './assets/img/image_8.jpeg';
 import img9 from './assets/img/image_9.jpeg';
 import img10 from './assets/img/image_10.jpeg'; // The requested hero image
 import img11 from './assets/img/image_11.jpeg';
+import img12 from './assets/img/image_12.jpeg';
 import { FaHeart } from 'react-icons/fa';
 
 const FloatingBackground = () => {
