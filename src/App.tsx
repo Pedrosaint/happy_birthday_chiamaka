@@ -175,9 +175,9 @@ function App() {
             <div className="flower-corner flower-br text-accent opacity-50"><FaHeart className="w-8 h-8" /></div>
           </motion.div>
           <div className="text-center mt-12 max-w-2xl px-6">
-            <h3 className="script-font text-5xl md:text-6xl text-accent mb-6">To the girl who steals my breath</h3>
+            <h3 className="script-font text-5xl md:text-6xl text-accent mb-6">The girl who caught my eye</h3>
             <p className="sans-font text-lg text-muted-text leading-relaxed">
-              Every time I look at you, I realize how incredibly lucky this world is to have someone as beautiful, inside and out, as you are. You have this effortless way of making everything brighter.
+              From the very first picture you ever sent me, I knew there was something different about you. Something warm, something real, something I couldn't look away from.
             </p>
           </div>
         </section>
@@ -185,7 +185,8 @@ function App() {
         {/* Section 3: The Memories Grid */}
         <section className="romantic-section bg-beige py-24 z-20 relative">
           <div className="text-center mb-16">
-            <h3 className="serif-font text-4xl text-text">Moments I cherish</h3>
+            <h3 className="serif-font text-4xl text-text">Every photo you sent, I kept</h3>
+            <p className="sans-font text-lg text-muted-text mt-4 max-w-xl mx-auto leading-relaxed">Because every single one reminded me why talking to you is the best part of my day.</p>
             <div className="w-24 h-px bg-accent mx-auto mt-6"></div>
           </div>
           
