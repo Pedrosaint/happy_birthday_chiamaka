@@ -174,9 +174,9 @@ function App() {
             <div className="flower-corner flower-br text-accent opacity-50"><FaHeart className="w-8 h-8" /></div>
           </motion.div>
           <div className="text-center mt-12 max-w-2xl px-6">
-            <h3 className="script-font text-5xl md:text-6xl text-accent mb-6">A beauty like no other</h3>
+            <h3 className="script-font text-5xl md:text-6xl text-accent mb-6">To the girl who steals my breath</h3>
             <p className="sans-font text-lg text-muted-text leading-relaxed">
-              Every flower blooming today is just trying to match the radiance you bring into this world. 
+              Every time I look at you, I realize how incredibly lucky this world is to have someone as beautiful, inside and out, as you are. You have this effortless way of making everything brighter.
             </p>
           </div>
         </section>
@@ -184,7 +184,7 @@ function App() {
         {/* Section 3: The Memories Grid */}
         <section className="romantic-section bg-beige py-24 z-20 relative">
           <div className="text-center mb-16">
-            <h3 className="serif-font text-4xl text-text">Precious Moments</h3>
+            <h3 className="serif-font text-4xl text-text">Moments I cherish</h3>
             <div className="w-24 h-px bg-accent mx-auto mt-6"></div>
           </div>
           
@@ -226,12 +226,15 @@ function App() {
               viewport={{ once: true }}
               transition={{ duration: 1, delay: 0.2 }}
             >
-              <h3 className="script-font text-6xl text-accent mb-8">My wish for you...</h3>
+              <h3 className="script-font text-6xl text-accent mb-8">My special wish for you...</h3>
               <p className="serif-font text-xl md:text-2xl leading-loose text-text mb-6">
-                May your day be filled with as much joy, love, and beauty as you give to everyone around you. You deserve all the floating roses, all the beautiful words, and a world that celebrates you.
+                I wanted to make something that could somehow match your grace, but honestly, nothing comes close to the real thing. Every moment I spend with you feels like a gift. 
               </p>
-              <p className="serif-font text-xl md:text-2xl leading-loose text-text">
-                Happy Birthday, my dear Chiamaka.
+              <p className="serif-font text-xl md:text-2xl leading-loose text-text mb-6">
+                As you celebrate today, I just want you to know how truly special you are to me. I hope this new year brings you as much happiness as you bring to my days.
+              </p>
+              <p className="serif-font text-xl md:text-2xl leading-loose text-text font-medium text-accent">
+                Happy Birthday, my beautiful Chiamaka.
               </p>
               
               <div className="mt-12 flex justify-center md:justify-start">
