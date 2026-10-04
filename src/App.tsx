@@ -1,52 +1,68 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
-import { Heart } from 'lucide-react';
+import { Heart, Volume2, VolumeX } from 'lucide-react';
 import './index.css';
+import { Quest } from './Quest';
+import { RealCurtain } from './RealCurtain';
+import { Confetti } from './Confetti';
+import { makeConfetti, type Particle } from './makeConfetti';
 
 // Import all images
 import img1 from './assets/img/image_1.jpeg';
 import img2 from './assets/img/image_2.jpeg';
 import img3 from './assets/img/image_3.jpeg';
-import img4 from './assets/img/image_4.jpeg';
 import img5 from './assets/img/image_5.jpeg';
-import img6 from './assets/img/image_6.jpeg';
 import img7 from './assets/img/image_7.jpeg';
-import img8 from './assets/img/image_8.jpeg';
-import img9 from './assets/img/image_9.jpeg';
 import img10 from './assets/img/image_10.jpeg'; // The requested hero image
 import img11 from './assets/img/image_11.jpeg';
-import img12 from './assets/img/image_12.jpeg';
 import { FaHeart } from 'react-icons/fa';
+import { Finale } from './Finale';
+
+// Drop the song at public/birthday-song.mp3. It starts when she taps "Click to Open"
+// (the tap is what lets browsers play sound). The mute button only shows once the file exists.
+const MUSIC_SRC = '/birthday-song.mp3';
+
+// Add your name for the sign-off, e.g. 'Jude'. Leave empty to sign off without one.
+const SENDER_NAME = '';
+
+// The gallery, as Polaroids with a handwritten caption each (edit the captions to taste).
+// image_4 and image_6 are near-twins of image_3 and image_5, so they're left out.
+const GALLERY = [
+  { src: img2, caption: 'That look 😎' },
+  { src: img3, caption: 'Peace, love & a pose ✌️' },
+  { src: img5, caption: 'Calm and unbothered 🌿' },
+  { src: img7, caption: 'This smile. Every time. 😊' },
+];
+
+// How far each Polaroid is tipped, in degrees
+const TILTS = [-2.5, 2, 1.8, -2];
+
+// Rolled once when the page loads, so every visit gets a different shower of hearts
+const FLOATING_HEARTS = Array.from({ length: 30 }).map((_, i) => ({
+  id: i,
+  x: Math.random() * 100,
+  delay: Math.random() * 20,
+  size: Math.random() * 15 + 10,
+  duration: Math.random() * 15 + 15,
+}));
 
 const FloatingBackground = () => {
-  const [elements, setElements] = useState<{ id: number; x: number; delay: number; size: number }[]>([]);
-
-  useEffect(() => {
-    const newElements = Array.from({ length: 30 }).map((_, i) => ({
-      id: i,
-      x: Math.random() * 100, 
-      delay: Math.random() * 20, 
-      size: Math.random() * 15 + 10, 
-    }));
-    setElements(newElements);
-  }, []);
-
   return (
     <div className="floating-container">
-      {elements.map((el) => (
+      {FLOATING_HEARTS.map((el) => (
         <motion.div
           key={el.id}
           className="floating-item"
           style={{ left: `${el.x}vw`, width: el.size, height: el.size }}
           initial={{ y: "110vh", rotate: 0, opacity: 0 }}
-          animate={{ 
-            y: "-10vh", 
-            rotate: 360, 
-            opacity: [0, 0.6, 0] 
+          animate={{
+            y: "-10vh",
+            rotate: 360,
+            opacity: [0, 0.6, 0]
           }}
-          transition={{ 
-            duration: Math.random() * 15 + 15, 
-            repeat: Infinity, 
+          transition={{
+            duration: el.duration,
+            repeat: Infinity,
             delay: el.delay,
             ease: "linear"
           }}
@@ -58,84 +74,152 @@ const FloatingBackground = () => {
   );
 };
 
-function Curtain({ onOpen }: { onOpen: () => void }) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const handleOpen = () => {
-    setIsOpen(true);
-    setTimeout(onOpen, 1800); 
-  };
-
-  return (
-    <div className="curtain-container">
-      <motion.div 
-        className="curtain-panel left"
-        animate={{ x: isOpen ? "-100%" : "0%" }}
-        transition={{ duration: 1.5, ease: [0.76, 0, 0.24, 1] }}
-      />
-      <motion.div 
-        className="curtain-panel right"
-        animate={{ x: isOpen ? "100%" : "0%" }}
-        transition={{ duration: 1.5, ease: [0.76, 0, 0.24, 1] }}
-      />
-      
-      <AnimatePresence>
-        {!isOpen && (
-          <motion.div 
-            className="curtain-content"
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h1 className="script-massive text-accent">For You,</h1>
-            <h2 className="title-massive serif-font text-text mt-4 mb-8">Chiamaka</h2>
-            
-            <div className="flex justify-center mb-8">
-               <FaHeart className="w-12 h-12 text-accent" />
-            </div>
-
-            <button onClick={handleOpen} className="open-button">
-              Click to Open
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
+// quest: the chain of questions -> curtain: the closed curtain -> open: it's parting
+// -> done: the page is all hers
+type Stage = 'quest' | 'curtain' | 'open' | 'done';
 
 function App() {
-  const [isOpened, setIsOpened] = useState(false);
+  const [stage, setStage] = useState<Stage>('quest');
+  const [reveal, setReveal] = useState<Particle[]>([]);
+  const [keyboardUser, setKeyboardUser] = useState(false);
+  const [replays, setReplays] = useState(0);
+  const isOpened = stage === 'open' || stage === 'done';
   const { scrollYProgress } = useScroll();
   const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.2]);
   const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
 
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [musicReady, setMusicReady] = useState(false);
+  const [musicStarted, setMusicStarted] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  // Keep the page still (and at the top) until the curtain has opened
+  useEffect(() => {
+    document.body.style.overflow = stage === 'done' ? '' : 'hidden';
+    if (stage !== 'done') window.scrollTo(0, 0);
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [stage]);
+
+  useEffect(() => {
+    const audio = new Audio(MUSIC_SRC);
+    audio.loop = true;
+    audio.volume = 0.6;
+    audio.preload = 'metadata';
+    // 'loadedmetadata' only fires if the file really exists, so no song means no button
+    const onReady = () => setMusicReady(true);
+    const onPlay = () => setIsPlaying(true);
+    const onPause = () => setIsPlaying(false);
+    audio.addEventListener('loadedmetadata', onReady);
+    audio.addEventListener('play', onPlay);
+    audio.addEventListener('pause', onPause);
+    audioRef.current = audio;
+    return () => {
+      audio.pause();
+      audio.removeEventListener('loadedmetadata', onReady);
+      audio.removeEventListener('play', onPlay);
+      audio.removeEventListener('pause', onPause);
+      audioRef.current = null;
+    };
+  }, []);
+
+  const startMusic = () => {
+    setMusicStarted(true);
+    audioRef.current?.play().catch(() => {}); // no song file yet, or the browser said no
+  };
+
+  const pullCurtain = () => {
+    setStage('open');
+    setReveal(makeConfetti(48, 1.8));
+  };
+
+  // "Play it again": back to the first question, with the page and the cake reset
+  const replay = () => {
+    setReveal([]);
+    setReplays((n) => n + 1);
+    setStage('quest');
+  };
+
+  const toggleMusic = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.paused) audio.play().catch(() => {});
+    else audio.pause();
+  };
+
   return (
     <div className="bg-ivory min-h-screen text-text relative">
       <FloatingBackground />
-      
-      {/* The Opening Curtain Screen */}
-      {!isOpened && <Curtain onOpen={() => setIsOpened(true)} />}
+
+      {/* The birthday quest, then the curtain she gets to open */}
+      <AnimatePresence mode="wait">
+        {stage === 'quest' && (
+          <Quest
+            key="quest"
+            onBegin={startMusic}
+            onComplete={(viaKeyboard) => {
+              setKeyboardUser(viaKeyboard);
+              setStage('curtain');
+            }}
+          />
+        )}
+        {(stage === 'curtain' || stage === 'open') && (
+          <RealCurtain
+            key="curtain"
+            open={stage === 'open'}
+            focusButton={keyboardUser}
+            onPull={pullCurtain}
+            onGone={() => setStage('done')}
+          />
+        )}
+      </AnimatePresence>
+      <Confetti particles={reveal} originY="45%" />
+
+      {musicReady && musicStarted && (
+        <button
+          className="music-toggle"
+          onClick={toggleMusic}
+          aria-label={isPlaying ? 'Mute music' : 'Play music'}
+          aria-pressed={isPlaying}
+        >
+          {isPlaying ? <Volume2 size={20} /> : <VolumeX size={20} />}
+        </button>
+      )}
 
       {/* Main Content (Revealed after curtain opens) */}
-      <div className={`main-content transition-opacity duration-1000 ${isOpened ? 'opacity-100' : 'opacity-0'}`}>
-        
+      <div
+        className={`main-content transition-opacity duration-1000 ${isOpened ? 'opacity-100' : 'opacity-0'}`}
+        inert={!isOpened}
+      >
+
         {/* Section 1: The New Cinematic Background Hero Page (img10) */}
-        <section className="hero-wrapper bg-dark">
-          <motion.img 
+        <section key={`hero-${replays}`} className="hero-wrapper bg-dark">
+          <motion.img
             style={{ scale: heroScale, y: heroY }}
-            src={img10} 
-            alt="Hero Chiamaka" 
-            className="hero-bg-img" 
+            src={img10}
+            alt="Hero Chiamaka"
+            className="hero-bg-img"
+            fetchPriority="high"
           />
           <div className="hero-overlay"></div>
-          
-          <motion.div 
+
+          {/* The date sits above her head and the title below her face, so neither covers it */}
+          <motion.div
+            className="hero-date"
+            initial={{ opacity: 0 }}
+            animate={isOpened ? { opacity: 1 } : {}}
+            transition={{ duration: 1.5, delay: 1.2 }}
+          >
+            <div className="date-badge">September 27th</div>
+          </motion.div>
+
+          <motion.div
             className="hero-content"
             initial={{ opacity: 0, y: 30 }}
             animate={isOpened ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 1.5, delay: 0.5 }}
+            transition={{ duration: 1.5, delay: 1.5 }}
           >
-            <div className="date-badge">September 27th</div>
             <h1 className="title-massive serif-font text-ivory mb-2">Happy Birthday</h1>
             <h2 className="script-massive">My Dearest Chiamaka</h2>
             <div className="flex justify-center mt-8 space-x-4">
@@ -146,14 +230,14 @@ function App() {
           </motion.div>
 
           {/* Animated Scroll Down Indicator */}
-          <motion.div 
+          <motion.div
             className="scroll-indicator"
             initial={{ opacity: 0 }}
             animate={isOpened ? { opacity: 0.8 } : {}}
-            transition={{ duration: 1, delay: 2 }}
+            transition={{ duration: 1, delay: 3.2 }}
           >
             <span className="sans-font text-xs uppercase tracking-widest">Scroll</span>
-            <motion.div 
+            <motion.div
               className="scroll-line"
               animate={{ height: ["0px", "40px", "0px"], y: [0, 20, 40] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -161,92 +245,85 @@ function App() {
           </motion.div>
         </section>
 
-        {/* Section 2: Beautiful Single Portrait (img1) */}
-        <section className="romantic-section bg-surface z-20">
-          <motion.div 
-            className="image-frame max-w-xl w-full mx-4"
+        {/* Chapter 1: where it started */}
+        <section className="chapter bg-surface">
+          <p className="eyebrow">Chapter one</p>
+          <h3 className="chapter-title script-font">The girl who caught my eye</h3>
+          <motion.div
+            className="image-frame max-w-xl w-full mt-8"
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 1.2 }}
           >
             <div className="flower-corner flower-tl text-accent opacity-50"><FaHeart className="w-8 h-8" /></div>
-            <img src={img1} alt="Chiamaka" className="w-full h-auto aspect-[4/5] object-cover rounded-sm" />
+            <img src={img1} alt="Chiamaka" loading="lazy" decoding="async" className="w-full h-auto aspect-[4/5] object-cover rounded-sm" />
             <div className="flower-corner flower-br text-accent opacity-50"><FaHeart className="w-8 h-8" /></div>
           </motion.div>
-          <div className="text-center mt-12 max-w-2xl px-6">
-            <h3 className="script-font text-5xl md:text-6xl text-accent mb-6">The girl who caught my eye</h3>
-            <p className="sans-font text-lg text-muted-text leading-relaxed">
-              From the very first picture you ever sent me, I knew there was something different about you. Something warm, something real, something I couldn't look away from.
-            </p>
-          </div>
+          <p className="chapter-sub">
+            From the very first picture you ever sent me, I knew there was something different about you. Something warm, something real, something I couldn't look away from.
+          </p>
         </section>
 
-        {/* Section 3: The Memories Grid */}
-        <section className="romantic-section bg-beige py-24 z-20 relative">
-          <div className="text-center mb-16">
-            <h3 className="serif-font text-4xl text-text">Every photo you sent, I kept</h3>
-            <p className="sans-font text-lg text-muted-text mt-4 max-w-xl mx-auto leading-relaxed">Because every single one reminded me why talking to you is the best part of my day.</p>
-            <div className="w-24 h-px bg-accent mx-auto mt-6"></div>
-          </div>
-          
-          <div className="grid-gallery px-8">
-            {[img2, img3, img4, img5, img6, img7].map((imgSrc, i) => (
-              <motion.div 
-                key={i}
-                className="image-frame"
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
+        {/* Chapter 2: the photos she sent */}
+        <section className="chapter bg-beige">
+          <p className="eyebrow">Chapter two</p>
+          <h3 className="chapter-title script-font">Every photo you sent, I kept</h3>
+          <p className="chapter-sub">Because every single one reminded me why talking to you is the best part of my day.</p>
+
+          <div className="polaroids">
+            {GALLERY.map((photo, i) => (
+              <motion.figure
+                key={photo.src}
+                className="polaroid"
+                initial={{ opacity: 0, y: 40, rotate: 0 }}
+                whileInView={{ opacity: 1, y: 0, rotate: TILTS[i % TILTS.length] }}
+                whileHover={{ rotate: 0, scale: 1.03 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 0.8, delay: i * 0.15 }}
               >
-                <img src={imgSrc} alt={`Memory ${i+2}`} className="w-full aspect-[4/5] object-cover" />
-              </motion.div>
+                <img src={photo.src} alt={photo.caption} loading="lazy" decoding="async" />
+                <figcaption>{photo.caption}</figcaption>
+              </motion.figure>
             ))}
           </div>
         </section>
 
-        {/* Section 4: The Heartfelt Letter */}
-        <section className="romantic-section bg-ivory z-20 relative">
-          <div className="flex flex-col md:flex-row items-center max-w-6xl w-full px-8 gap-12">
-            <motion.div 
-              className="w-full md:w-1/2"
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1 }}
-            >
-              <div className="image-frame">
-                <img src={img11} alt="Portrait" className="w-full aspect-[3/4] object-cover" />
-              </div>
-            </motion.div>
+        {/* Chapter 3: the letter */}
+        <section className="chapter bg-ivory">
+          <p className="eyebrow">Chapter three</p>
+          <h3 className="chapter-title script-font">My special wish for you…</h3>
 
-            <motion.div 
-              className="w-full md:w-1/2 flex flex-col justify-center text-center md:text-left"
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1, delay: 0.2 }}
-            >
-              <h3 className="script-font text-6xl text-accent mb-8">My special wish for you...</h3>
-              <p className="serif-font text-xl md:text-2xl leading-loose text-text mb-6">
-                I wanted to make something that could somehow match your grace, but honestly, nothing comes close to the real thing. Every moment I spend with you feels like a gift. 
-              </p>
-              <p className="serif-font text-xl md:text-2xl leading-loose text-text mb-6">
-                As you celebrate today, I just want you to know how truly special you are to me. I hope this new year brings you as much happiness as you bring to my days.
-              </p>
-              <p className="serif-font text-xl md:text-2xl leading-loose text-text font-medium text-accent">
-                Happy Birthday, my beautiful Chiamaka.
-              </p>
-              
-              <div className="mt-12 flex justify-center md:justify-start">
-                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-surface shadow-xl">
-                  <img src={img12} alt="Finale" className="w-full h-full object-cover" />
-                </div>
+          <motion.article
+            className="letter-card"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 1 }}
+          >
+            <div className="letter-photo">
+              <div className="image-frame">
+                <img src={img11} alt="Chiamaka" loading="lazy" decoding="async" className="w-full aspect-[3/4] object-cover" />
               </div>
-            </motion.div>
-          </div>
+            </div>
+
+            <div className="letter-body">
+              <p className="letter-text">
+                I wanted to make something that could somehow match your grace, but honestly, nothing comes close to the real thing. Every moment I spend with you feels like a gift.
+              </p>
+              <p className="letter-text">
+                As you celebrate another year of your life, I just want you to know how truly special you are to me. I hope this new year brings you as much happiness as you bring to my days.
+              </p>
+              <p className="letter-text letter-close">Happy Birthday, my beautiful Chiamaka.</p>
+              <p className="script-font text-4xl text-accent mt-2">
+                Yours, always{SENDER_NAME && `, ${SENDER_NAME}`}
+              </p>
+            </div>
+          </motion.article>
         </section>
+
+        {/* The finale: make a wish */}
+        <Finale key={`finale-${replays}`} onReplay={replay} />
 
       </div>
     </div>

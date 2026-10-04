@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Alex+Brush&family=Montserrat:wght@200;300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Nunito:wght@300;400;500;600;700&display=swap');
 
 :root {
   --background: #E8DDCC;
@@ -7,11 +7,12 @@
   --text: #2A241F;
   --muted-text: #756B60;
   --accent: #B89B72;
+  --accent-deep: #8A6D3F; /* the same gold, darker, for small text that has to stay readable */
   --dark: #211C18;
-  
-  --font-serif: 'Playfair Display', serif;
+
+  --font-serif: 'Fraunces', serif;
   --font-script: 'Alex Brush', cursive;
-  --font-sans: 'Montserrat', sans-serif;
+  --font-sans: 'Nunito', sans-serif;
 }
 
 * {
@@ -40,6 +41,7 @@ body {
 .text-accent { color: var(--accent); }
 .text-text { color: var(--text); }
 .text-ivory { color: var(--ivory); }
+.font-medium { font-weight: 500; }
 .text-muted-text { color: var(--muted-text); }
 
 /* Utilities */
@@ -63,6 +65,7 @@ body {
 .h-6 { height: 1.5rem; }
 .w-24 { width: 6rem; }
 .w-32 { width: 8rem; }
+.h-32 { height: 8rem; }
 .h-auto { height: auto; }
 .h-px { height: 1px; }
 .max-w-xl { max-width: 36rem; }
@@ -96,8 +99,8 @@ body {
 .transition-opacity { transition-property: opacity; }
 .duration-1000 { transition-duration: 1000ms; }
 .object-cover { object-fit: cover; }
-.aspect-\\[4\\/5\\] { aspect-ratio: 4/5; }
-.aspect-\\[3\\/4\\] { aspect-ratio: 3/4; }
+.aspect-\[4\/5\] { aspect-ratio: 4/5; }
+.aspect-\[3\/4\] { aspect-ratio: 3/4; }
 .aspect-square { aspect-ratio: 1/1; }
 .leading-relaxed { line-height: 1.625; }
 .leading-loose { line-height: 2; }
@@ -108,12 +111,12 @@ body {
 .z-30 { z-index: 30; }
 
 @media (min-width: 768px) {
-  .md\\:w-1\\/2 { width: 50%; }
-  .md\\:flex-row { flex-direction: row; }
-  .md\\:text-left { text-align: left; }
-  .md\\:text-6xl { font-size: 3.75rem; }
-  .md\\:text-2xl { font-size: 1.5rem; }
-  .md\\:justify-start { justify-content: flex-start; }
+  .md\:w-1\/2 { width: 50%; }
+  .md\:flex-row { flex-direction: row; }
+  .md\:text-left { text-align: left; }
+  .md\:text-6xl { font-size: 3.75rem; }
+  .md\:text-2xl { font-size: 1.5rem; }
+  .md\:justify-start { justify-content: flex-start; }
 }
 
 .text-lg { font-size: 1.125rem; }
@@ -122,65 +125,379 @@ body {
 .text-5xl { font-size: 3rem; }
 .text-6xl { font-size: 3.75rem; }
 
-/* Curtain Animation Layout */
-.curtain-container {
+/* ---------- Birthday quest: one cheeky question per screen ---------- */
+.quest {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  inset: 0;
   z-index: 100;
-  pointer-events: none;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.25rem 1.25rem 2rem;
+  overflow-y: auto;
 }
 
-.curtain-panel {
-  width: 50%;
-  height: 100%;
-  background-color: var(--ivory);
-  pointer-events: auto;
-  position: relative;
-  box-shadow: 0 0 30px rgba(0,0,0,0.2);
+.quest-header {
+  width: 100%;
+  max-width: 40rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding-top: 0.5rem;
+  flex-shrink: 0;
+}
+
+.quest-for {
+  font-size: 2rem;
+  line-height: 1.1;
+  color: var(--accent);
+}
+
+.quest-progress {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.quest-progress svg {
+  width: 1rem;
+  height: 1rem;
+  color: rgba(184, 155, 114, 0.3);
+  transition: color 0.4s ease, transform 0.4s ease;
+}
+
+.quest-progress svg.on {
+  color: var(--accent);
+  transform: scale(1.2);
+}
+
+.quest-stage {
+  flex: 1;
+  width: 100%;
   display: flex;
   align-items: center;
-  border-right: 1px solid rgba(184, 155, 114, 0.3);
+  justify-content: center;
 }
 
-.curtain-panel.right {
-  border-right: none;
-  border-left: 1px solid rgba(184, 155, 114, 0.3);
-}
-
-.curtain-content {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100vw;
+.quest-card {
+  width: min(100%, 34rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-  pointer-events: auto;
-  z-index: 101;
 }
 
-.open-button {
-  background-color: transparent;
-  border: 1px solid var(--accent);
+/* the comeback to her last answer, as a speech bubble */
+.quest-reply {
+  position: relative;
+  max-width: 90%;
+  margin-bottom: 1.4rem;
+  padding: 0.6rem 1.1rem;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
   color: var(--text);
-  padding: 1rem 3rem;
+  background: #fff;
+  border: 1px solid rgba(184, 155, 114, 0.4);
+  border-radius: 1.2rem;
+  box-shadow: 0 8px 24px rgba(42, 36, 31, 0.12);
+}
+
+.quest-reply::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-right: 1px solid rgba(184, 155, 114, 0.4);
+  border-bottom: 1px solid rgba(184, 155, 114, 0.4);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.quest-emoji {
+  font-size: clamp(4rem, 14vw, 5.5rem);
+  line-height: 1;
+  margin-bottom: 1rem;
+}
+
+.quest-question {
+  margin-bottom: 2rem;
+  padding: 0 0.25rem;
+  font-size: clamp(1.7rem, 6vw, 2.5rem);
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--text);
+}
+
+.quest-answers {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.quest-btn {
+  width: min(100%, 20rem);
+  min-height: 3.4rem;
+  padding: 0.85rem 1.5rem;
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--dark);
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 9999px;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(184, 155, 114, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.quest-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(184, 155, 114, 0.45);
+}
+
+.quest-btn:active {
+  transform: scale(0.97);
+}
+
+.quest-btn:focus-visible {
+  outline: 3px solid var(--text);
+  outline-offset: 3px;
+}
+
+.quest-btn-alt {
+  background: transparent;
+  box-shadow: none;
+}
+
+.quest-btn-alt:hover {
+  background: rgba(184, 155, 114, 0.15);
+  box-shadow: none;
+}
+
+/* room for the button that runs away */
+.quest-runaway {
+  width: 100%;
+  min-height: 4.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quest-runaway .quest-btn {
+  width: auto;
+  min-width: 9rem;
+}
+
+.quest-taunt {
+  min-height: 1.4rem;
   font-family: var(--font-sans);
   font-size: 0.9rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.4s ease;
-  margin-top: 2rem;
-  border-radius: 50px;
+  color: var(--muted-text);
 }
 
-.open-button:hover {
-  background-color: var(--accent);
-  color: var(--ivory);
-  box-shadow: 0 10px 20px rgba(184, 155, 114, 0.2);
+/* ---------- Party confetti ---------- */
+/* A screen-sized layer that clips its pieces: otherwise the ones that land below the screen
+   would stretch the page and leave a blank gap at the bottom. */
+.confetti {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: var(--origin-y, 60%);
+  left: 50%;
+  line-height: 1;
+  will-change: transform;
+}
+
+/* ---------- The real curtain ---------- */
+.stage {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow: hidden;
+}
+
+/* velvet: folds are a repeating light/dark gradient, so they bunch up as the drape gathers */
+.drape {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 51%; /* the two drapes overlap a little at the middle so there's no seam */
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0) 22%, rgba(0, 0, 0, 0) 70%, rgba(0, 0, 0, 0.55) 100%),
+    repeating-linear-gradient(90deg, #3a050d 0px, #6d0f21 16px, #a01c37 30px, #6d0f21 44px, #3a050d 60px);
+}
+
+.drape-left {
+  left: 0;
+  box-shadow: 10px 0 34px rgba(0, 0, 0, 0.55);
+}
+
+.drape-right {
+  right: 0;
+  box-shadow: -10px 0 34px rgba(0, 0, 0, 0.55);
+}
+
+/* gold fringe along the hem */
+.drape::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 12px;
+  background: repeating-linear-gradient(90deg, #d4af5a 0 2px, #7a5a1c 2px 5px);
+}
+
+/* the ruched pelmet across the top, with a gold fringe */
+.valance {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  height: clamp(4.5rem, 12vh, 7.5rem);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0.4)),
+    repeating-linear-gradient(90deg, #3d0711 0, #7f1629 20px, #3d0711 40px);
+  border-bottom: 5px solid #c9a24d;
+  box-shadow: 0 14px 26px rgba(0, 0, 0, 0.6);
+}
+
+.valance::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 18px;
+  margin-top: 5px;
+  background: repeating-linear-gradient(90deg, #d4af5a 0 2px, transparent 2px 7px);
+  -webkit-mask-image: linear-gradient(180deg, #000, transparent);
+  mask-image: linear-gradient(180deg, #000, transparent);
+}
+
+.stage-content {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6rem 1.5rem 3rem;
+  text-align: center;
+}
+
+.stage-emoji {
+  margin-bottom: 0.5rem;
+  font-size: 4rem;
+  line-height: 1;
+}
+
+.stage-title {
+  margin-bottom: 0.75rem;
+  font-size: clamp(3rem, 10vw, 5.5rem);
+  line-height: 1;
+  color: #f1d98a;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+}
+
+.stage-sub {
+  max-width: 20rem;
+  margin-bottom: 2rem;
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
+  color: rgba(250, 247, 240, 0.92);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+
+.stage-btn {
+  min-height: 3.4rem;
+  padding: 0.9rem 2.4rem;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #2a1308;
+  background: linear-gradient(180deg, #f3dc92, #c39a45);
+  border: 1px solid #f7e6aa;
+  border-radius: 9999px;
+  cursor: pointer;
+  animation: stage-pulse 1.8s ease-out infinite;
+}
+
+.stage-btn:hover {
+  filter: brightness(1.06);
+}
+
+.stage-btn:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+.stage-btn:disabled {
+  animation: none;
+  cursor: default;
+}
+
+@keyframes stage-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(243, 220, 146, 0.65), 0 12px 28px rgba(0, 0, 0, 0.45); }
+  70% { box-shadow: 0 0 0 18px rgba(243, 220, 146, 0), 0 12px 28px rgba(0, 0, 0, 0.45); }
+  100% { box-shadow: 0 0 0 0 rgba(243, 220, 146, 0), 0 12px 28px rgba(0, 0, 0, 0.45); }
+}
+
+/* the golden pull-cord */
+.tassel {
+  position: absolute;
+  top: clamp(4.5rem, 12vh, 7.5rem);
+  right: 12%;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 0.75rem;
+  cursor: pointer;
+}
+
+.tassel-cord {
+  width: 4px;
+  height: 30vh;
+  background: linear-gradient(90deg, #8a6a22, #f0d58a, #8a6a22);
+}
+
+.tassel-knob {
+  width: 24px;
+  height: 24px;
+  margin-top: -2px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f6e2a0, #b8913f 70%);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+}
+
+.tassel-skirt {
+  width: 34px;
+  height: 56px;
+  background: repeating-linear-gradient(90deg, #e0bd68 0 3px, #8a6a22 3px 5px);
+  clip-path: polygon(22% 0, 78% 0, 100% 100%, 0 100%);
+}
+
+@media (max-width: 600px) {
+  .tassel { right: 4%; }
+  .tassel-cord { height: 20vh; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage-btn { animation: none; }
 }
 
 /* Floating Elements */
@@ -197,7 +514,7 @@ body {
 
 .floating-item {
   position: absolute;
-  color: var(--accent);
+  color: #E53E3E;
   opacity: 0.5;
 }
 
@@ -209,8 +526,19 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  /* title block sits in the lower part of the frame, below her face */
+  justify-content: flex-end;
   align-items: center;
+  padding-bottom: clamp(5rem, 14vh, 9rem);
+}
+
+.hero-date {
+  position: absolute;
+  top: clamp(2rem, 7vh, 4.5rem);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  text-align: center;
 }
 
 .hero-bg-img {
@@ -232,7 +560,8 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to bottom, rgba(42,36,31,0.2) 0%, rgba(42,36,31,0.6) 100%);
+  /* light over her face, darker toward the bottom where the title sits */
+  background: linear-gradient(to bottom, rgba(42,36,31,0.15) 0%, rgba(42,36,31,0.25) 40%, rgba(42,36,31,0.75) 100%);
   z-index: 1;
 }
 
@@ -240,6 +569,8 @@ body {
   position: relative;
   z-index: 20;
   text-align: center;
+  width: 100%;
+  padding: 0 1rem;
 }
 
 .title-massive {
@@ -250,6 +581,7 @@ body {
 }
 
 .script-massive {
+  font-family: var(--font-script);
   font-size: clamp(3rem, 10vw, 8rem);
   color: var(--accent);
   text-align: center;
@@ -257,6 +589,14 @@ body {
   margin-top: -1rem;
   transform: rotate(-2deg);
   text-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+/* Phones: a little air between the two title lines */
+@media (max-width: 600px) {
+  .script-massive {
+    margin-top: 0.4rem;
+    line-height: 0.95;
+  }
 }
 
 .date-badge {
@@ -268,7 +608,7 @@ body {
   letter-spacing: 0.3em;
   text-transform: uppercase;
   font-size: 0.8rem;
-  margin: 2rem 0;
+  margin: 0;
   color: var(--ivory);
   text-shadow: 0 2px 10px rgba(0,0,0,0.5);
 }
@@ -293,16 +633,64 @@ body {
   margin-top: 0.5rem;
 }
 
-/* Decorative Sections */
-.romantic-section {
+/* Very short screens: the scroll hint would sit on top of the hearts */
+@media (max-height: 700px) {
+  .scroll-indicator {
+    display: none;
+  }
+}
+
+/* ---------- The story: three chapters, then the finale ---------- */
+.chapter {
   position: relative;
-  min-height: 100vh;
+  z-index: 20;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  z-index: 10;
+  padding: 6rem 1.5rem;
+  /* the heart corners and the tilted photos stick out; don't let that widen the page on phones */
+  overflow-x: clip;
+}
+
+/* the small "Chapter one" label above each title */
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--accent-deep);
+}
+
+.eyebrow::before,
+.eyebrow::after {
+  content: '';
+  width: 2rem;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+.chapter-title {
+  text-align: center;
+  font-size: clamp(2.8rem, 9vw, 4.25rem);
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--accent);
+}
+
+.chapter-sub {
+  max-width: 34rem;
+  margin-top: 2rem;
+  text-align: center;
+  font-family: var(--font-sans);
+  font-size: 1.15rem;
+  line-height: 1.75;
+  color: var(--muted-text);
 }
 
 .image-frame {
@@ -337,13 +725,275 @@ body {
 .flower-tl { top: -30px; left: -30px; transform: rotate(-45deg); }
 .flower-br { bottom: -30px; right: -30px; transform: rotate(135deg); }
 
-.grid-gallery {
+/* Chapter two: the photos, pinned up like Polaroids */
+.polaroids {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 3rem;
+  grid-template-columns: 1fr; /* one column on a phone */
+  gap: 3.5rem 2.5rem;
   width: 100%;
-  max-width: 1200px;
-  margin: 4rem auto;
+  max-width: 44rem;
+  margin-top: 4rem;
+}
+
+/* four photos: two by two */
+@media (min-width: 640px) {
+  .polaroids {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.polaroid {
+  position: relative;
+  margin: 0;
+  padding: 0.9rem 0.9rem 0.4rem;
+  background: #fff;
+  border-radius: 3px;
+  box-shadow: 0 18px 40px rgba(42, 36, 31, 0.18);
+}
+
+/* a strip of tape holding it up */
+.polaroid::before {
+  content: '';
+  position: absolute;
+  top: -0.8rem;
+  left: 50%;
+  width: 5.5rem;
+  height: 1.5rem;
+  margin-left: -2.75rem;
+  background: rgba(214, 190, 140, 0.6);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  transform: rotate(-3deg);
+}
+
+.polaroid img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+}
+
+.polaroid figcaption {
+  padding: 0.5rem 0 0.6rem;
+  text-align: center;
+  font-family: var(--font-script);
+  font-size: 1.9rem;
+  line-height: 1.2;
+  color: var(--accent-deep);
+}
+
+/* Chapter three: the letter, on a card */
+.letter-card {
+  width: 100%;
+  max-width: 64rem;
+  margin-top: 3rem;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  background: #fffdf8;
+  border: 1px solid rgba(184, 155, 114, 0.35);
+  border-radius: 8px;
+  box-shadow: 0 30px 60px rgba(42, 36, 31, 0.12);
+}
+
+.letter-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+
+.letter-text {
+  margin-bottom: 1.25rem;
+  font-family: var(--font-serif);
+  font-size: clamp(1.1rem, 2.4vw, 1.35rem);
+  line-height: 1.85;
+  color: var(--text);
+}
+
+.letter-close {
+  font-weight: 600;
+  color: var(--accent-deep);
+}
+
+@media (min-width: 768px) {
+  .letter-card {
+    flex-direction: row;
+    align-items: center;
+    padding: 2.5rem;
+  }
+
+  .letter-photo {
+    width: 42%;
+    flex-shrink: 0;
+  }
+
+  .letter-body {
+    text-align: left;
+  }
+}
+
+/* The finale: a dark room, a cake, a wish */
+.finale {
+  background: #17110d;
+  color: var(--ivory);
+  text-align: center;
+  padding-bottom: 7rem;
+}
+
+.finale > * {
+  position: relative;
+  z-index: 1;
+}
+
+.finale .eyebrow {
+  color: #d9bf8e;
+}
+
+/* the warm glow of the candles on the room */
+.finale > .finale-glow {
+  position: absolute;
+  z-index: 0;
+  top: 40%;
+  left: 50%;
+  width: min(95vw, 42rem);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(255, 190, 90, 0.35), rgba(255, 150, 60, 0.12) 40%, transparent 70%);
+  pointer-events: none;
+  transition: opacity 1.2s ease;
+}
+
+.finale > .finale-glow.dim {
+  opacity: 0.1;
+}
+
+.finale-title {
+  margin-bottom: 0.5rem;
+  font-size: clamp(3rem, 10vw, 5rem);
+  line-height: 1.1;
+  color: #f1d98a;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+}
+
+.cake {
+  width: min(78vw, 22rem);
+  height: auto;
+  margin: 1rem 0 1.5rem;
+  overflow: visible;
+}
+
+.flame {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: flicker 0.38s ease-in-out infinite alternate;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.flame.out {
+  opacity: 0;
+  transform: scale(0.2);
+  animation: none;
+}
+
+@keyframes flicker {
+  from { transform: scale(1) rotate(-3deg); }
+  to { transform: scale(1.08, 1.14) rotate(3deg); }
+}
+
+.smoke {
+  fill: none;
+  stroke: rgba(235, 235, 235, 0.75);
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: 0;
+  animation: smoke 2.4s ease-out forwards;
+}
+
+@keyframes smoke {
+  0% { opacity: 0.8; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-34px); }
+}
+
+.finale-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 34rem;
+}
+
+.finale-prompt {
+  margin-bottom: 1.75rem;
+  font-family: var(--font-sans);
+  font-size: 1.15rem;
+  line-height: 1.7;
+  color: rgba(250, 247, 240, 0.88);
+}
+
+.finale-photo {
+  width: 9rem;
+  height: 9rem;
+  margin-bottom: 1.5rem;
+  object-fit: cover;
+  border-radius: 9999px;
+  border: 4px solid #f1d98a;
+  box-shadow: 0 0 0 8px rgba(241, 217, 138, 0.15), 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.finale-message {
+  margin-bottom: 2rem;
+  font-size: clamp(1.3rem, 3.4vw, 1.75rem);
+  line-height: 1.6;
+}
+
+.ghost-btn {
+  min-height: 3.2rem;
+  padding: 0.8rem 2rem;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f1d98a;
+  background: transparent;
+  border: 1px solid rgba(241, 217, 138, 0.7);
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background-color 0.25s ease;
+}
+
+.ghost-btn:hover {
+  background: rgba(241, 217, 138, 0.14);
+}
+
+.ghost-btn:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+/* Music mute / unmute button */
+.music-toggle {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 200;
+  width: 2.75rem;
+  height: 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  background-color: rgba(250, 247, 240, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--accent);
+  border-radius: 9999px;
+  box-shadow: 0 8px 20px rgba(42, 36, 31, 0.15);
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.music-toggle:hover {
+  background-color: var(--accent);
+  color: var(--ivory);
 }
 
 /* Beautiful custom scrollbar */
