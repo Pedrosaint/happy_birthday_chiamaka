@@ -1010,3 +1010,137 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #a68a61; 
 }
+
+/* ---------- The lantern (dark mode switch) ---------- */
+.lantern {
+  position: fixed;
+  top: 0;
+  left: clamp(0.75rem, 3vw, 2rem);
+  z-index: 210;
+  width: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.lantern-glow {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  width: 240px;
+  height: 240px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 196, 90, 0.42), rgba(255, 170, 60, 0.14) 45%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.lantern.on .lantern-glow {
+  opacity: 1;
+}
+
+.lantern-body {
+  position: relative;
+  z-index: 1;
+  width: 56px;
+  height: auto;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.25));
+  transition: filter 0.6s ease;
+}
+
+/* a faint rim so the lantern can still be found in the dark */
+.lantern.off .lantern-body {
+  filter: drop-shadow(0 0 1px rgba(255, 235, 190, 0.7));
+}
+
+.lantern-flame {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: flicker 0.38s ease-in-out infinite alternate;
+}
+
+.lantern-rope {
+  position: relative;
+  z-index: 1;
+  width: 3px;
+  margin-top: -2px;
+  background: linear-gradient(90deg, #8a6a22, #d9bd78, #8a6a22);
+}
+
+.lantern-knob {
+  position: absolute;
+  top: 112px;
+  left: 50%;
+  z-index: 2;
+  width: 22px;
+  height: 22px;
+  margin-left: -11px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f6e2a0, #b8913f 70%);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.lantern-knob:active {
+  cursor: grabbing;
+}
+
+.lantern-knob:focus-visible {
+  outline: 3px solid var(--text);
+  outline-offset: 3px;
+}
+
+.lantern-hint {
+  position: absolute;
+  top: 142px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.5rem;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--accent-deep);
+  animation: hint-bob 1.6s ease-in-out infinite;
+}
+
+@keyframes hint-bob {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, 6px); }
+}
+
+/* ---------- Dark mode: the lantern is off ---------- */
+[data-theme=dark] {
+  --background: #14100d;
+  --surface: #1a1511;
+  --text: #efe6d6;
+  --muted-text: #b9ac98;
+  --accent-deep: #d6bb86;
+  color-scheme: dark;
+}
+
+[data-theme=dark] .bg-ivory { background-color: #100c0a; }
+[data-theme=dark] .image-frame,
+[data-theme=dark] .quest-reply,
+[data-theme=dark] .quest-reply::after { background: #2a221c; }
+[data-theme=dark] .polaroid { background: #e6dccb; }
+[data-theme=dark] .letter-card {
+  background: #1b1612;
+  border-color: rgba(184, 155, 114, 0.25);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+}
+[data-theme=dark] .quest-btn-alt { color: var(--text); }
+[data-theme=dark] .music-toggle { background-color: rgba(30, 24, 20, 0.85); }
+
+/* ease between light and dark instead of snapping */
+body, .chapter, .bg-ivory, .bg-surface, .bg-beige, .letter-card, .polaroid, .quest-reply {
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+.image-frame {
+  transition: transform 0.5s ease, background-color 0.5s ease;
+}

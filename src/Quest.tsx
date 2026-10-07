@@ -3,11 +3,12 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { FaHeart } from 'react-icons/fa';
 import { Confetti } from './Confetti';
 import { makeConfetti, type Particle } from './makeConfetti';
+import { sfx } from './sound';
 
-// Her birthday is the 27th of September. On the day the first question says "today"; on any
+// Her birthday is the 11th of October. On the day the first question says "today"; on any
 // other day it asks about the date instead, so it reads right whether it's opened on time or late.
 const TODAY = new Date();
-const IS_BIRTHDAY_TODAY = TODAY.getMonth() === 8 && TODAY.getDate() === 27;
+const IS_BIRTHDAY_TODAY = TODAY.getMonth() === 9 && TODAY.getDate() === 11;
 
 interface Answer {
   label: string;
@@ -28,7 +29,7 @@ const STEPS: Step[] = [
     emoji: '🎂',
     question: IS_BIRTHDAY_TODAY
       ? 'Hey Chiamaka… you know today is your birthday?'
-      : 'Hey Chiamaka… do you know what the 27th of September is?',
+      : 'Hey Chiamaka… do you know what the 11th of October is?',
     answers: [
       {
         label: IS_BIRTHDAY_TODAY ? 'Yes, I know 😄' : 'Yes… my birthday 😄',
@@ -106,6 +107,7 @@ function RunawayButton({
     setPos({ x: side * (0.5 + Math.random() * 0.5) * maxX, y: (Math.random() * 2 - 1) * 14 });
     setDodges((d) => d + 1);
     lastDodge.current = performance.now();
+    sfx.pop(1.7);
   };
 
   return (
@@ -155,6 +157,7 @@ export function Quest({
 
   const choose = (answerReply: string, viaKeyboard: boolean) => {
     if (step === 0) onBegin(); // the very first tap is what lets the browser play music
+    sfx.pop();
     setBurst(makeConfetti(16));
     setReply(answerReply);
     setFocusFirst(viaKeyboard);

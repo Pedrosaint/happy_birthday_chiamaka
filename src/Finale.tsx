@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Confetti } from './Confetti';
 import { makeConfetti, type Particle } from './makeConfetti';
+import { sfx } from './sound';
 import portrait from './assets/img/image_12.jpeg';
 
 const CANDLES = [
@@ -94,6 +95,7 @@ export function Finale({ onReplay }: { onReplay: () => void }) {
   const blowOut = () => {
     setLit(false);
     setBurst(makeConfetti(60, 2));
+    sfx.blow(); // a breath, then Happy Birthday on the music box
   };
 
   return (

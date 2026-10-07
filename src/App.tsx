@@ -17,6 +17,8 @@ import img10 from './assets/img/image_10.jpeg'; // The requested hero image
 import img11 from './assets/img/image_11.jpeg';
 import { FaHeart } from 'react-icons/fa';
 import { Finale } from './Finale';
+import { Lantern } from './Lantern';
+import { sfx, startAmbient, setMuted } from './sound';
 
 // Drop the song at public/birthday-song.mp3. It starts when she taps "Click to Open"
 // (the tap is what lets browsers play sound). The mute button only shows once the file exists.
@@ -83,6 +85,7 @@ function App() {
   const [reveal, setReveal] = useState<Particle[]>([]);
   const [keyboardUser, setKeyboardUser] = useState(false);
   const [replays, setReplays] = useState(0);
+  const [lit, setLit] = useState(true); // the lantern: lit is the normal look, off is dark mode
   const isOpened = stage === 'open' || stage === 'done';
   const { scrollYProgress } = useScroll();
   const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.2]);
@@ -92,6 +95,11 @@ function App() {
   const [musicReady, setMusicReady] = useState(false);
   const [musicStarted, setMusicStarted] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+
+  // the stylesheet swaps its colours when <html data-theme="dark">
+  useEffect(() => {
+    document.documentElement.dataset.theme = lit ? 'light' : 'dark';
+  }, [lit]);
 
   // Keep the page still (and at the top) until the curtain has opened
   useEffect(() => {
@@ -124,14 +132,21 @@ function App() {
     };
   }, []);
 
+  // The lullaby is built into sound.ts. If a song file is added at MUSIC_SRC, that plays instead.
   const startMusic = () => {
     setMusicStarted(true);
-    audioRef.current?.play().catch(() => {}); // no song file yet, or the browser said no
+    if (musicReady) {
+      audioRef.current?.play().catch(() => {});
+    } else {
+      startAmbient();
+      setIsPlaying(true);
+    }
   };
 
   const pullCurtain = () => {
     setStage('open');
     setReveal(makeConfetti(48, 1.8));
+    sfx.curtain();
   };
 
   // "Play it again": back to the first question, with the page and the cake reset
@@ -141,16 +156,29 @@ function App() {
     setStage('quest');
   };
 
+  // the mute button silences the music and the sound effects together
   const toggleMusic = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (audio.paused) audio.play().catch(() => {});
-    else audio.pause();
+    const nowPlaying = !isPlaying;
+    setMuted(!nowPlaying);
+    if (musicReady) {
+      const audio = audioRef.current;
+      if (nowPlaying) audio?.play().catch(() => {});
+      else audio?.pause();
+    } else {
+      setIsPlaying(nowPlaying);
+    }
   };
 
   return (
     <div className="bg-ivory min-h-screen text-text relative">
       <FloatingBackground />
+      <Lantern
+        lit={lit}
+        onToggle={() => {
+          sfx.click();
+          setLit((on) => !on);
+        }}
+      />
 
       {/* The birthday quest, then the curtain she gets to open */}
       <AnimatePresence mode="wait">
@@ -176,7 +204,7 @@ function App() {
       </AnimatePresence>
       <Confetti particles={reveal} originY="45%" />
 
-      {musicReady && musicStarted && (
+      {musicStarted && (
         <button
           className="music-toggle"
           onClick={toggleMusic}
@@ -211,7 +239,7 @@ function App() {
             animate={isOpened ? { opacity: 1 } : {}}
             transition={{ duration: 1.5, delay: 1.2 }}
           >
-            <div className="date-badge">September 27th</div>
+            <div className="date-badge">October 11th</div>
           </motion.div>
 
           <motion.div
