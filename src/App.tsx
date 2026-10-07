@@ -175,7 +175,7 @@ function App() {
       <Lantern
         lit={lit}
         onToggle={() => {
-          sfx.click();
+          sfx.click(!lit);
           setLit((on) => !on);
         }}
       />

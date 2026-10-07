@@ -107,7 +107,7 @@ function RunawayButton({
     setPos({ x: side * (0.5 + Math.random() * 0.5) * maxX, y: (Math.random() * 2 - 1) * 14 });
     setDodges((d) => d + 1);
     lastDodge.current = performance.now();
-    sfx.pop(1.7);
+    sfx.dodge();
   };
 
   return (
@@ -157,7 +157,7 @@ export function Quest({
 
   const choose = (answerReply: string, viaKeyboard: boolean) => {
     if (step === 0) onBegin(); // the very first tap is what lets the browser play music
-    sfx.pop();
+    sfx.tap();
     setBurst(makeConfetti(16));
     setReply(answerReply);
     setFocusFirst(viaKeyboard);

@@ -1,28 +1,43 @@
-// Every sound is made here with the Web Audio API, so there are no audio files to find or
-// license: a soft music-box lullaby with a warm pad underneath, plus a few small effects.
-// Browsers only allow sound after a tap, so nothing starts until startAmbient() or an
-// effect is called from a click handler.
+// One sound for the whole app: Happy Birthday on a music box, in C, looping softly from her
+// first tap to the last. Every effect is a note of the same music box, in the same key, so
+// it all sounds like one piece. Made with the Web Audio API, so there are no files to find
+// or license. Browsers only allow sound after a tap, so nothing starts until startAmbient()
+// or an effect is called from a click handler.
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
 let bus: GainNode | null = null; // everything goes through here: a little echo, then master
 let muted = false;
-let ambientOn = false;
-let nextNote = 0;
-let step = 0;
 
 const LEVEL = 0.9;
-const BEAT = 0.6; // seconds between music-box notes
+const BEAT = 0.55; // seconds per beat, gentle enough for a lullaby
 const midi = (n: number) => 440 * Math.pow(2, (n - 69) / 12);
 
-// C, Am, F, G: warm and unresolved, so it can loop forever without getting old
-const CHORDS = [
-  [60, 64, 67],
-  [57, 60, 64],
-  [53, 57, 60],
-  [55, 59, 62],
+// Happy Birthday: [note, beats]. Four phrases of six beats.
+const TUNE: Array<[number, number]> = [
+  [67, 0.75], [67, 0.25], [69, 1], [67, 1], [72, 1], [71, 2],
+  [67, 0.75], [67, 0.25], [69, 1], [67, 1], [74, 1], [72, 2],
+  [67, 0.75], [67, 0.25], [79, 1], [76, 1], [72, 1], [71, 1], [69, 1],
+  [77, 0.75], [77, 0.25], [76, 1], [72, 1], [74, 1], [72, 2],
 ];
-const PATTERN = [0, 1, 2, 1, 2, 1, 0, 2]; // which chord tone each of the 8 notes plays
+// the chord under each three beats of the tune: C, G, G, C, C, F, C, C
+const HARMONY = [
+  [48, 52, 55], [43, 47, 50], [43, 47, 50], [48, 52, 55],
+  [48, 52, 55], [41, 45, 48], [48, 52, 55], [48, 52, 55],
+];
+const LOOP_GAP = 2; // beats of quiet before the tune starts again
+const QUIET = 0.075; // the background volume of a note
+const FULL = 0.16; // the volume of a note when she blows out the candles
+
+// tapping buttons plays these notes in turn, so her answers play a little tune of their own
+const SCALE = [72, 76, 79, 84, 79, 76];
+
+let ambientOn = false;
+let noteIndex = 0;
+let beatPos = 0;
+let nextNote = 0;
+let fullLoops = 0; // how many more times to play the tune at full volume
+let taps = 0;
 
 function ensure(): AudioContext | null {
   if (ctx) return ctx;
@@ -33,7 +48,7 @@ function ensure(): AudioContext | null {
   master.gain.value = muted ? 0 : LEVEL;
   master.connect(ctx.destination);
 
-  // a soft echo makes the plinks sound like a music box in a quiet room
+  // a soft echo makes the notes sound like a music box in a quiet room
   bus = ctx.createGain();
   const delay = ctx.createDelay();
   delay.delayTime.value = 0.32;
@@ -58,7 +73,7 @@ function ensure(): AudioContext | null {
 }
 
 // one music-box note: a bright "plink" that rings out and fades
-function plink(freq: number, at: number, vol = 0.1, length = 1.6) {
+function plink(freq: number, at: number, vol = 0.12, length = 1.6) {
   if (!ctx || !bus) return;
   const env = ctx.createGain();
   env.gain.setValueAtTime(0.0001, at);
@@ -78,15 +93,15 @@ function plink(freq: number, at: number, vol = 0.1, length = 1.6) {
   }
 }
 
-// a slow, breathing chord under the notes
-function pad(notes: number[], at: number, length: number) {
+// a slow, breathing chord under the tune
+function pad(notes: number[], at: number, length: number, vol: number) {
   if (!ctx || !bus) return;
   const filter = ctx.createBiquadFilter();
   filter.type = 'lowpass';
   filter.frequency.value = 700;
   const env = ctx.createGain();
   env.gain.setValueAtTime(0.0001, at);
-  env.gain.exponentialRampToValueAtTime(0.045, at + 1.8);
+  env.gain.exponentialRampToValueAtTime(vol, at + 0.9);
   env.gain.exponentialRampToValueAtTime(0.0001, at + length);
   filter.connect(env);
   env.connect(bus);
@@ -103,15 +118,24 @@ function pad(notes: number[], at: number, length: number) {
   }
 }
 
-function scheduleAmbient() {
+// keeps the tune going a little ahead of the clock
+function scheduleTune() {
   if (!ctx || !ambientOn) return;
   while (nextNote < ctx.currentTime + 0.8) {
-    const chord = CHORDS[Math.floor(step / 8) % CHORDS.length];
-    const i = step % 8;
-    if (i === 0) pad(chord.map((n) => n - 12), nextNote, 8 * BEAT + 1.5);
-    if (Math.random() > 0.12) plink(midi(chord[PATTERN[i]] + 12), nextNote, 0.08 + Math.random() * 0.03);
-    nextNote += BEAT;
-    step++;
+    const [note, beats] = TUNE[noteIndex];
+    const full = fullLoops > 0;
+    if (beatPos % 3 === 0) pad(HARMONY[beatPos / 3], nextNote, 3 * BEAT + 1, full ? 0.06 : 0.035);
+    plink(midi(note), nextNote, full ? FULL : QUIET, full ? 1.8 : 1.5);
+    if (full) plink(midi(note + 12), nextNote, 0.05, 1.2); // doubled an octave up
+    nextNote += beats * BEAT;
+    beatPos += beats;
+    noteIndex++;
+    if (noteIndex === TUNE.length) {
+      noteIndex = 0;
+      beatPos = 0;
+      nextNote += LOOP_GAP * BEAT;
+      if (fullLoops > 0) fullLoops--;
+    }
   }
 }
 
@@ -121,9 +145,8 @@ export function startAmbient() {
   void c.resume();
   ambientOn = true;
   nextNote = c.currentTime + 0.3;
-  step = 0;
-  window.setInterval(scheduleAmbient, 200);
-  scheduleAmbient();
+  window.setInterval(scheduleTune, 200);
+  scheduleTune();
 }
 
 export function setMuted(value: boolean) {
@@ -131,7 +154,7 @@ export function setMuted(value: boolean) {
   if (ctx && master) master.gain.setTargetAtTime(value ? 0 : LEVEL, ctx.currentTime, 0.08);
 }
 
-// a short burst of filtered noise, for the curtain and for blowing out candles
+// a short burst of filtered noise: the curtain sweeping open, a breath over the candles
 function noise(length: number, from: number, to: number, vol: number, type: BiquadFilterType) {
   const c = ensure();
   if (!c || !bus) return;
@@ -157,69 +180,53 @@ function noise(length: number, from: number, to: number, vol: number, type: Biqu
   src.start(t);
 }
 
-// Happy Birthday on the music box, in C like the lullaby under it. [note, beats]
-const BIRTHDAY: Array<[number, number]> = [
-  [67, 0.75], [67, 0.25], [69, 1], [67, 1], [72, 1], [71, 2],
-  [67, 0.75], [67, 0.25], [69, 1], [67, 1], [74, 1], [72, 2],
-  [67, 0.75], [67, 0.25], [79, 1], [76, 1], [72, 1], [71, 1], [69, 1],
-  [77, 0.75], [77, 0.25], [76, 1], [72, 1], [74, 1], [72, 2],
-];
+// a single music-box note, right now
+function note(n: number, delay = 0, vol = 0.12, length = 1.2) {
+  const c = ensure();
+  if (!c) return;
+  void c.resume();
+  plink(midi(n), c.currentTime + delay, vol, length);
+}
 
 export const sfx = {
-  // a little bubble pop for every button
-  pop(pitch = 1) {
-    const c = ensure();
-    if (!c || !bus) return;
-    void c.resume();
-    const t = c.currentTime;
-    const osc = c.createOscillator();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(420 * pitch, t);
-    osc.frequency.exponentialRampToValueAtTime(780 * pitch, t + 0.09);
-    const env = c.createGain();
-    env.gain.setValueAtTime(0.0001, t);
-    env.gain.exponentialRampToValueAtTime(0.18, t + 0.01);
-    env.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
-    osc.connect(env);
-    env.connect(bus);
-    osc.start(t);
-    osc.stop(t + 0.16);
+  // every answer plays the next note of a little rising scale
+  tap() {
+    note(SCALE[taps++ % SCALE.length], 0, 0.13, 1.1);
   },
-  // the soft "tick" of a lantern rope
-  click() {
-    const c = ensure();
-    if (!c || !bus) return;
-    void c.resume();
-    const t = c.currentTime;
-    const osc = c.createOscillator();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(1100, t);
-    osc.frequency.exponentialRampToValueAtTime(260, t + 0.06);
-    const env = c.createGain();
-    env.gain.setValueAtTime(0.2, t);
-    env.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
-    osc.connect(env);
-    env.connect(bus);
-    osc.start(t);
-    osc.stop(t + 0.1);
+  // the button that runs away squeaks a high note
+  dodge() {
+    note(88, 0, 0.1, 0.8);
   },
-  // the curtain sweeping open, then a sparkle
+  // the lantern: two notes falling as the light goes off, rising as it comes back
+  click(turningOn: boolean) {
+    const [first, second] = turningOn ? [79, 84] : [84, 79];
+    note(first, 0, 0.12, 0.9);
+    note(second, 0.12, 0.12, 1.1);
+  },
+  // the curtain sweeping open, then a sparkle of C major
   curtain() {
-    noise(1.6, 250, 2600, 0.22, 'bandpass');
-    const c = ensure();
-    if (!c) return;
-    [79, 83, 86, 91, 95].forEach((n, i) => plink(midi(n), c.currentTime + 0.9 + i * 0.1, 0.1, 1.8));
+    noise(1.6, 250, 2600, 0.14, 'bandpass');
+    [72, 76, 79, 84, 88].forEach((n, i) => note(n, 0.9 + i * 0.1, 0.12, 1.8));
   },
-  // a breath across the candles, then the song
+  // a breath across the candles, then the same tune the whole app has been humming,
+  // this time fuller and an octave brighter
   blow() {
-    noise(0.7, 1800, 500, 0.3, 'lowpass');
+    noise(0.7, 1800, 500, 0.2, 'lowpass');
     const c = ensure();
     if (!c) return;
-    const start = c.currentTime + 1.2;
-    let beats = 0;
-    for (const [note, length] of BIRTHDAY) {
-      plink(midi(note), start + beats * 0.5, 0.15, 1.4);
-      beats += length;
+    if (ambientOn) {
+      noteIndex = 0;
+      beatPos = 0;
+      nextNote = c.currentTime + 1.2;
+      fullLoops = 1;
+      scheduleTune();
+    } else {
+      // no background tune running (a real song file is playing instead): play it once
+      let at = c.currentTime + 1.2;
+      for (const [n, beats] of TUNE) {
+        plink(midi(n), at, FULL, 1.8);
+        at += beats * BEAT;
+      }
     }
   },
 };
